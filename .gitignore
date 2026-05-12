@@ -1,0 +1,15 @@
+# Build outputs
+ado-slim-mcp
+ado-slim-mcp.exe
+bin/
+
+# AAD token cache & device-code state (must never be committed)
+token-cache*.json
+account*.json
+pending-device-code*.txt
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
