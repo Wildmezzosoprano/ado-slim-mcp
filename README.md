@@ -101,6 +101,19 @@ files.
 - **Windows**: `%APPDATA%\ado-slim-mcp\`
 - **Other**:   `${XDG_CONFIG_HOME:-~/.config}/ado-slim-mcp/`
 
+On **Windows**, the token cache file (`token-cache-<org>.json`) is
+encrypted at rest using **DPAPI** (`CryptProtectData`, `CurrentUser`
+scope, app-bound via a fixed entropy value). The `.json` extension is
+retained for historical reasons — the on-disk bytes are an opaque
+DPAPI blob prefixed with a small magic header, not JSON. Legacy
+plaintext caches written by older builds are still loaded
+transparently and are **silently upgraded** to the encrypted format
+on the next write.
+
+On **macOS** and **Linux**, the cache file remains plaintext JSON with
+file mode `0600`. Encryption-at-rest on those platforms is a future
+follow-up.
+
 ## CLI
 
 ```text
