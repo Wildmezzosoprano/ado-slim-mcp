@@ -113,38 +113,263 @@ ado-slim-mcp --help                Show usage.
 
 ## MCP client config
 
-### Claude Desktop / generic stdio client (PAT)
+`ado-slim` is a local stdio MCP server. Register it with your client using one of the snippets below. All clients require `ADO_ORG` (your Azure DevOps organization name); optionally set `ADO_PAT` for PAT auth, or omit it to use AAD device-code auth on first call.
+
+**First-time AAD setup:** Before wiring `ado-slim` into a client, run this once in a terminal to seed the token cache and avoid startup timeouts:
+
+```bash
+ado-slim-mcp --login        # macOS/Linux
+ado-slim-mcp.exe --login    # Windows
+```
+
+### Claude Desktop
+
+| OS      | Config file path                                                  |
+| ------- | ----------------------------------------------------------------- |
+| Windows | `%APPDATA%\Claude\claude_desktop_config.json`                     |
+| macOS   | `~/Library/Application Support/Claude/claude_desktop_config.json` |
+| Linux   | `~/.config/Claude/claude_desktop_config.json`                     |
+
+PAT auth:
 
 ```json
 {
   "mcpServers": {
     "ado-slim": {
-      "command": "C:/path/to/ado-slim-mcp.exe",
+      "command": "C:\\path\\to\\ado-slim-mcp.exe",
       "env": {
-        "ADO_ORG": "your-org",
-        "ADO_PAT": "your-pat"
+        "ADO_ORG": "YourOrgName",
+        "ADO_PAT": "your-pat-here"
       }
     }
   }
 }
 ```
 
-### AAD (no PAT)
+AAD auth — omit `ADO_PAT`:
 
 ```json
 {
   "mcpServers": {
     "ado-slim": {
-      "command": "C:/path/to/ado-slim-mcp.exe",
+      "command": "C:\\path\\to\\ado-slim-mcp.exe",
       "env": {
-        "ADO_ORG": "your-org"
+        "ADO_ORG": "YourOrgName"
       }
     }
   }
 }
 ```
 
-Run `ado-slim-mcp --login` first.
+On macOS/Linux use `/path/to/ado-slim-mcp` (no `.exe`, no escaping). After editing, fully quit Claude (not just close the window) and restart.
+
+### Claude Code CLI
+
+| Scope               | Path                                |
+| ------------------- | ----------------------------------- |
+| Project (committed) | `<repo>/.mcp.json`                  |
+| User                | `~/.claude.json`                    |
+| Local (uncommitted) | `<repo>/.claude/settings.local.json` |
+
+CLI shortcut (recommended — sidesteps Windows path-escaping):
+
+```bash
+# Project scope
+claude mcp add ado-slim -s project \
+  --env ADO_ORG=YourOrgName \
+  -- C:\path\to\ado-slim-mcp.exe
+
+# User scope
+claude mcp add ado-slim -s user \
+  --env ADO_ORG=YourOrgName \
+  -- C:\path\to\ado-slim-mcp.exe
+```
+
+The `--` is required — it separates `claude` flags from the server command.
+
+Equivalent JSON for `.mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "ado-slim": {
+      "type": "stdio",
+      "command": "C:\\path\\to\\ado-slim-mcp.exe",
+      "env": {
+        "ADO_ORG": "YourOrgName",
+        "ADO_PAT": "your-pat-here"
+      }
+    }
+  }
+}
+```
+
+For AAD auth, omit `ADO_PAT`.
+
+### VS Code (Copilot Agent Mode)
+
+| Scope     | Path                                                                                                                                                                  |
+| --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Workspace | `<repo>/.vscode/mcp.json`                                                                                                                                             |
+| User      | `%APPDATA%\Code\User\mcp.json` (Windows) <br> `~/Library/Application Support/Code/User/mcp.json` (macOS) <br> `~/.config/Code/User/mcp.json` (Linux) |
+
+> **⚠️ Key difference:** VS Code uses `"servers"`, not `"mcpServers"`. This is the most common copy-paste error when porting a snippet from Claude or Cursor.
+
+PAT auth:
+
+```json
+{
+  "servers": {
+    "ado-slim": {
+      "type": "stdio",
+      "command": "C:\\path\\to\\ado-slim-mcp.exe",
+      "env": {
+        "ADO_ORG": "YourOrgName",
+        "ADO_PAT": "your-pat-here"
+      }
+    }
+  }
+}
+```
+
+AAD auth with a prompted org name:
+
+```json
+{
+  "inputs": [
+    { "id": "adoOrg", "type": "promptString", "description": "Azure DevOps org" }
+  ],
+  "servers": {
+    "ado-slim": {
+      "type": "stdio",
+      "command": "C:\\path\\to\\ado-slim-mcp.exe",
+      "env": { "ADO_ORG": "${input:adoOrg}" }
+    }
+  }
+}
+```
+
+Requires VS Code 1.99+ with Copilot agent mode. Accept the workspace-trust prompt on first run.
+
+### Cursor
+
+| Scope   | Path                                                                                       |
+| ------- | ------------------------------------------------------------------------------------------ |
+| Project | `<repo>/.cursor/mcp.json`                                                                  |
+| Global  | `%USERPROFILE%\.cursor\mcp.json` (Windows) <br> `~/.cursor/mcp.json` (macOS/Linux) |
+
+PAT auth:
+
+```json
+{
+  "mcpServers": {
+    "ado-slim": {
+      "command": "C:\\path\\to\\ado-slim-mcp.exe",
+      "env": {
+        "ADO_ORG": "YourOrgName",
+        "ADO_PAT": "your-pat-here"
+      }
+    }
+  }
+}
+```
+
+AAD auth with env passthrough:
+
+```json
+{
+  "mcpServers": {
+    "ado-slim": {
+      "command": "C:\\path\\to\\ado-slim-mcp.exe",
+      "env": {
+        "ADO_ORG": "${env:ADO_ORG}"
+      }
+    }
+  }
+}
+```
+
+Restart Cursor after editing. Settings → Tools & MCP shows a green dot when the server is up.
+
+### Codex CLI & IDE
+
+The Codex CLI, IDE extension, and desktop app all share one config file. There is no separate "Codex Desktop" config.
+
+| OS              | Path                                |
+| --------------- | ----------------------------------- |
+| Windows         | `%USERPROFILE%\.codex\config.toml`  |
+| macOS / Linux   | `~/.codex/config.toml`              |
+
+CLI shortcut:
+
+```bash
+codex mcp add ado-slim \
+  --env ADO_ORG=YourOrgName \
+  -- C:\path\to\ado-slim-mcp.exe
+```
+
+TOML (PAT auth):
+
+```toml
+[mcp_servers.ado-slim]
+command = "C:\\path\\to\\ado-slim-mcp.exe"
+
+[mcp_servers.ado-slim.env]
+ADO_ORG = "YourOrgName"
+ADO_PAT = "your-pat-here"
+```
+
+TOML (AAD auth — extend startup timeout for first-run device-code flow):
+
+```toml
+[mcp_servers.ado-slim]
+command = "C:\\path\\to\\ado-slim-mcp.exe"
+startup_timeout_sec = 60
+
+[mcp_servers.ado-slim.env]
+ADO_ORG = "YourOrgName"
+```
+
+Codex defaults to a 10-second startup timeout, which AAD device-code login can exceed. Running `ado-slim-mcp --login` once in a terminal beforehand avoids this.
+
+### GitHub Copilot CLI
+
+The standalone `copilot` CLI (distinct from `gh copilot`).
+
+| OS              | Path                                       |
+| --------------- | ------------------------------------------ |
+| Windows         | `%USERPROFILE%\.copilot\mcp-config.json`   |
+| macOS / Linux   | `~/.copilot/mcp-config.json`               |
+
+In-CLI:
+
+```
+/mcp add
+/mcp show ado-slim
+```
+
+JSON:
+
+```json
+{
+  "mcpServers": {
+    "ado-slim": {
+      "type": "stdio",
+      "command": "C:\\path\\to\\ado-slim-mcp.exe",
+      "env": {
+        "ADO_ORG": "YourOrgName",
+        "ADO_PAT": "your-pat-here"
+      }
+    }
+  }
+}
+```
+
+For AAD auth, omit `ADO_PAT`.
+
+### ChatGPT Desktop (not supported)
+
+ChatGPT Desktop's "connectors" / Developer Mode supports only remote HTTP MCP servers via its UI; it cannot register a local stdio binary like `ado-slim`. Use Claude Desktop, VS Code, Cursor, or one of the CLIs instead.
 
 ## Tools
 
