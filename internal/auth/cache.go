@@ -110,10 +110,15 @@ func GetPendingDeviceCodePath(org string) (string, error) {
 	return filepath.Join(d, "pending-device-code-"+sanitizeOrg(org)+".txt"), nil
 }
 
-// fileCache is an MSAL Go cache.ExportReplace backed by a single JSON file
-// on disk. The on-disk byte format is the unified MSAL cache format, which
-// the MSAL Node implementation also produces — so a token-cache.json
-// written by the TypeScript implementation should load here verbatim.
+// fileCache is an MSAL Go cache.ExportReplace backed by a single file on
+// disk. On non-Windows the on-disk byte format is the unified MSAL JSON
+// cache format (plaintext, mode 0600) — interchangeable with caches written
+// by the TypeScript implementation. On Windows the file content is binary:
+// a 10-byte ASCII magic prefix "ADOSLIMV1\n" followed by raw DPAPI
+// ciphertext (CurrentUser scope, app-bound via fixed entropy). The file
+// extension stays ".json" for historical reasons even though Windows
+// content is binary; legacy plaintext caches written by an earlier version
+// are loaded transparently and silently upgraded on the next Export.
 //
 // (Empirically validated in plan step 22; if the formats diverge, the
 // only impact is users re-login once.)
@@ -143,7 +148,15 @@ func (c *fileCache) Replace(_ context.Context, u cache.Unmarshaler, _ cache.Repl
 		fmt.Fprintf(os.Stderr, "[ado-slim] token cache read failed: %v\n", err)
 		return nil
 	}
-	return u.Unmarshal(data)
+	plain, wasEncrypted, err := decryptFromStorage(data)
+	if err != nil {
+		if wasEncrypted {
+			return fmt.Errorf("token cache decryption failed for %q (likely written by a different Windows user or machine); re-run `ado-slim-mcp.exe --login --force` to recover: %w", c.path, err)
+		}
+		// Defensive: should not occur with current storage impls.
+		return err
+	}
+	return u.Unmarshal(plain)
 }
 
 // Export writes the in-memory MSAL cache to disk atomically (write to .tmp
@@ -152,6 +165,10 @@ func (c *fileCache) Export(_ context.Context, m cache.Marshaler, _ cache.ExportH
 	data, err := m.Marshal()
 	if err != nil {
 		return fmt.Errorf("msal marshal: %w", err)
+	}
+	data, err = encryptForStorage(data)
+	if err != nil {
+		return fmt.Errorf("encrypt token cache: %w", err)
 	}
 	tmp := c.path + ".tmp"
 	if err := os.WriteFile(tmp, data, 0o600); err != nil {
