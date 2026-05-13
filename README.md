@@ -22,6 +22,87 @@ It started life as a TypeScript reimplementation; it's now distributed
 as a single ~9 MB Go binary so you don't need Node on the machine that
 runs it.
 
+## Install
+
+Download a single static binary from
+[GitHub Releases](https://github.com/Wildmezzosoprano/ado-slim-mcp/releases) —
+no Go toolchain required.
+
+### Pre-built binaries
+
+| OS      | Arch  | Asset filename                       |
+| ------- | ----- | ------------------------------------ |
+| Windows | amd64 | `ado-slim-mcp-windows-amd64.exe`     |
+| Windows | arm64 | `ado-slim-mcp-windows-arm64.exe`     |
+| Linux   | amd64 | `ado-slim-mcp-linux-amd64`           |
+| Linux   | arm64 | `ado-slim-mcp-linux-arm64`           |
+| macOS   | amd64 | `ado-slim-mcp-darwin-amd64`          |
+| macOS   | arm64 | `ado-slim-mcp-darwin-arm64`          |
+
+The `latest` URL auto-redirects to the newest release; pin a specific
+version with the versioned URL when reproducibility matters.
+
+- Latest: `https://github.com/Wildmezzosoprano/ado-slim-mcp/releases/latest/download/<asset>`
+- Pinned: `https://github.com/Wildmezzosoprano/ado-slim-mcp/releases/download/v0.1.0/<asset>`
+
+**Linux:**
+
+```bash
+curl -L -o ado-slim-mcp \
+  https://github.com/Wildmezzosoprano/ado-slim-mcp/releases/latest/download/ado-slim-mcp-linux-amd64
+chmod +x ado-slim-mcp
+```
+
+**macOS:**
+
+```bash
+curl -L -o ado-slim-mcp \
+  https://github.com/Wildmezzosoprano/ado-slim-mcp/releases/latest/download/ado-slim-mcp-darwin-arm64
+chmod +x ado-slim-mcp
+```
+
+**Windows (PowerShell):**
+
+```powershell
+Invoke-WebRequest `
+  -Uri https://github.com/Wildmezzosoprano/ado-slim-mcp/releases/latest/download/ado-slim-mcp-windows-amd64.exe `
+  -OutFile ado-slim-mcp.exe
+```
+
+### Checksum verification
+
+Each release ships a `SHA256SUMS` file alongside the binaries.
+
+**Linux / macOS:**
+
+```bash
+curl -L -O https://github.com/Wildmezzosoprano/ado-slim-mcp/releases/latest/download/SHA256SUMS
+sha256sum -c SHA256SUMS --ignore-missing
+```
+
+**Windows (PowerShell):**
+
+```powershell
+Invoke-WebRequest `
+  -Uri https://github.com/Wildmezzosoprano/ado-slim-mcp/releases/latest/download/SHA256SUMS `
+  -OutFile SHA256SUMS
+$expected = (Select-String -Path SHA256SUMS -Pattern 'ado-slim-mcp-windows-amd64.exe').Line.Split(' ')[0]
+$actual   = (Get-FileHash ado-slim-mcp.exe -Algorithm SHA256).Hash.ToLower()
+if ($expected -eq $actual) { "OK" } else { "MISMATCH" }
+```
+
+### Verify install
+
+```sh
+ado-slim-mcp --version
+```
+
+Should print the release tag (e.g. `v0.1.0`).
+
+Note: on Windows the token cache is encrypted at rest using DPAPI; on
+macOS and Linux the cache file is plaintext JSON with mode `0600`. See
+[Cache locations](#cache-locations) for details.
+
 ## Build
 
 Requires Go ≥ 1.22.
