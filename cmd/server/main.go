@@ -4,6 +4,7 @@
 //
 //	ado-slim-mcp                       Start the MCP stdio server (default).
 //	ado-slim-mcp --login [--force]     Run AAD device-code login interactively.
+//	ado-slim-mcp --version             Print version and exit.
 //	ado-slim-mcp --help                Print usage.
 package main
 
@@ -21,10 +22,14 @@ import (
 	"github.com/mark3labs/mcp-go/server"
 )
 
+// version is overridden at build time via -ldflags "-X main.version=...".
+var version = "dev"
+
 const usage = `Usage:
   ado-slim-mcp                       Start the MCP stdio server (default).
   ado-slim-mcp --login [--force]     Run AAD device-code login interactively in a terminal.
                                      Writes a token cache so the server starts silently afterwards.
+  ado-slim-mcp --version             Print version and exit.
   ado-slim-mcp --help                Show this help.
 
 Env vars:
@@ -42,6 +47,7 @@ type cliMode int
 const (
 	modeServer cliMode = iota
 	modeLogin
+	modeVersion
 	modeHelp
 	modeUnknown
 )
@@ -61,6 +67,9 @@ func parseArgs(argv []string) cli {
 	}
 	if set["--help"] || set["-h"] {
 		return cli{mode: modeHelp}
+	}
+	if set["--version"] {
+		return cli{mode: modeVersion}
 	}
 	if set["--login"] {
 		for _, a := range argv {
@@ -86,6 +95,9 @@ func main() {
 	switch c.mode {
 	case modeHelp:
 		printUsage(os.Stdout)
+		os.Exit(0)
+	case modeVersion:
+		fmt.Fprintln(os.Stdout, version)
 		os.Exit(0)
 	case modeUnknown:
 		fmt.Fprintf(os.Stderr, "[ado-slim] Unknown argument: %s\n\n", c.unknown)
