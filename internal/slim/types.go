@@ -35,7 +35,7 @@ type SlimWorkItem struct {
 	Type              string            `json:"type"`
 	Title             string            `json:"title"`
 	State             string            `json:"state"`
-	Reason            string            `json:"reason"`
+	Reason            string            `json:"reason,omitempty"`
 	AssignedTo        string            `json:"assignedTo,omitempty"`
 	CreatedBy         string            `json:"createdBy"`
 	CreatedDate       string            `json:"createdDate"`
@@ -50,7 +50,7 @@ type SlimWorkItem struct {
 	AreaPath          string            `json:"areaPath"`
 	Tags              string            `json:"tags,omitempty"`
 	StoryPoints       *float64          `json:"storyPoints,omitempty"`
-	Relations         []SlimRelation    `json:"relations"`
+	Relations         []SlimRelation    `json:"relations,omitempty"`
 	Description       string            `json:"description,omitempty"`
 	AcceptanceCriteria string           `json:"acceptanceCriteria,omitempty"`
 	ExtraFields       map[string]string `json:"extraFields,omitempty"`
@@ -83,7 +83,7 @@ type SlimComment struct {
 	Text        string `json:"text"`
 	Author      string `json:"author"`
 	CreatedDate string `json:"createdDate"`
-	IsEdited    bool   `json:"isEdited"`
+	IsEdited    bool   `json:"isEdited,omitempty"`
 }
 
 type SlimRevision struct {
@@ -131,7 +131,7 @@ type SlimRepoSummary struct {
 	Name          string `json:"name"`
 	DefaultBranch string `json:"defaultBranch,omitempty"`
 	Size          int64  `json:"size"`
-	IsDisabled    bool   `json:"isDisabled"`
+	IsDisabled    bool   `json:"isDisabled,omitempty"`
 }
 
 type SlimRepo struct {
@@ -140,7 +140,7 @@ type SlimRepo struct {
 	DefaultBranch string `json:"defaultBranch,omitempty"`
 	Size          int64  `json:"size"`
 	WebURL        string `json:"webUrl"`
-	IsDisabled    bool   `json:"isDisabled"`
+	IsDisabled    bool   `json:"isDisabled,omitempty"`
 }
 
 type SlimBranch struct {
@@ -215,8 +215,8 @@ type SlimPullRequestSummary struct {
 	CreationDate  string         `json:"creationDate"`
 	SourceBranch  string         `json:"sourceBranch"`
 	TargetBranch  string         `json:"targetBranch"`
-	Reviewers     []SlimReviewer `json:"reviewers"`
-	IsDraft       bool           `json:"isDraft"`
+	Reviewers     []SlimReviewer `json:"reviewers,omitempty"`
+	IsDraft       bool           `json:"isDraft,omitempty"`
 	MergeStatus   string         `json:"mergeStatus,omitempty"`
 	Labels        []string       `json:"labels,omitempty"`
 }
@@ -236,11 +236,11 @@ type SlimPullRequest struct {
 	ClosedDate         string                 `json:"closedDate,omitempty"`
 	SourceBranch       string                 `json:"sourceBranch"`
 	TargetBranch       string                 `json:"targetBranch"`
-	Reviewers          []SlimReviewer         `json:"reviewers"`
-	IsDraft            bool                   `json:"isDraft"`
+	Reviewers          []SlimReviewer         `json:"reviewers,omitempty"`
+	IsDraft            bool                   `json:"isDraft,omitempty"`
 	MergeStatus        string                 `json:"mergeStatus,omitempty"`
 	Labels             []string               `json:"labels,omitempty"`
-	WorkItemIDs        []int                  `json:"workItemIds"`
+	WorkItemIDs        []int                  `json:"workItemIds,omitempty"`
 	CompletionOptions  *SlimCompletionOptions `json:"completionOptions,omitempty"`
 	AutoCompleteSetBy  string                 `json:"autoCompleteSetBy,omitempty"`
 	WebURL             string                 `json:"webUrl"`
@@ -274,7 +274,7 @@ type SlimThread struct {
 	Status          string                 `json:"status,omitempty"`
 	FilePath        string                 `json:"filePath,omitempty"`
 	LineRange       *SlimLineRange         `json:"lineRange,omitempty"`
-	IsDeleted       bool                   `json:"isDeleted"`
+	IsDeleted       bool                   `json:"isDeleted,omitempty"`
 	CommentCount    int                    `json:"commentCount"`
 	LastUpdatedDate string                 `json:"lastUpdatedDate"`
 	FirstComment    SlimThreadFirstComment `json:"firstComment"`
@@ -282,11 +282,11 @@ type SlimThread struct {
 
 type SlimThreadComment struct {
 	CommentID       int    `json:"commentId"`
-	ParentCommentID int    `json:"parentCommentId"`
+	ParentCommentID int    `json:"parentCommentId,omitempty"`
 	Author          string `json:"author"`
 	Text            string `json:"text"`
 	Date            string `json:"date"`
-	IsEdited        bool   `json:"isEdited"`
+	IsEdited        bool   `json:"isEdited,omitempty"`
 	CommentType     string `json:"commentType"`
 }
 
