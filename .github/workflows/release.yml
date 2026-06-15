@@ -24,10 +24,10 @@ jobs:
           - { goos: darwin,  goarch: arm64, ext: "" }
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
 
@@ -42,7 +42,7 @@ jobs:
           ls -la "$out"
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ado-slim-mcp-${{ matrix.goos }}-${{ matrix.goarch }}
           path: ado-slim-mcp-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}
@@ -57,7 +57,7 @@ jobs:
       contents: write
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           path: dist
           merge-multiple: true
